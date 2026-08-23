@@ -1,0 +1,107 @@
+import { useState } from "react";
+import AuthContext from "./AuthContext";
+import api from "../services/api";
+
+const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+
+    return savedUser
+      ? JSON.parse(savedUser)
+      : null;
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  const login = async (email, password) => {
+    try {
+      setLoading(true);
+
+      const response = await api.post("/auth/login", {
+        email,
+        password,
+      });
+
+      const { token, user } = response.data;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem(
+        "user",
+        JSON.stringify(user)
+      );
+
+      setUser(user);
+
+      return {
+        success: true,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "Login failed",
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const register = async (
+    name,
+    email,
+    password,
+    role
+  ) => {
+    try {
+      setLoading(true);
+
+      const response = await api.post(
+        "/auth/register",
+        {
+          name,
+          email,
+          password,
+          role,
+        }
+      );
+
+      return {
+        success: true,
+        message: response.data.message,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "Registration failed",
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        register,
+        logout,
+        loading,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export default AuthProvider;

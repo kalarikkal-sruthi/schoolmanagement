@@ -6,11 +6,17 @@ const protect = (req, res, next) => {
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({
-        message: "Not authorized"
+        message: "Not authorized",
       });
     }
 
     const token = authHeader.split(" ")[1];
+
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({
+        message: "JWT secret is not configured",
+      });
+    }
 
     const decoded = jwt.verify(
       token,
@@ -20,9 +26,12 @@ const protect = (req, res, next) => {
     req.user = decoded;
 
     next();
+
   } catch (error) {
+    console.error("AUTH ERROR:", error);
+
     return res.status(401).json({
-      message: "Invalid or expired token"
+      message: "Invalid or expired token",
     });
   }
 };

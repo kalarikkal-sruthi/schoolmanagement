@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 const Register = () => {
@@ -10,12 +9,10 @@ const Register = () => {
     name: "",
     email: "",
     password: "",
-    role: "student",
   });
 
+  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -27,53 +24,68 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    setMessage("");
     setError("");
-    setSuccess("");
-    setLoading(true);
 
     try {
-      await api.post("/auth/register", formData);
+      const response = await api.post(
+        "/auth/register",
+        formData
+      );
 
-      setSuccess("Registration successful! Please login.");
+      setMessage(response.data.message);
 
       setTimeout(() => {
         navigate("/login");
       }, 1000);
+
     } catch (error) {
-      setError(error.response?.data?.message || "Registration failed");
-    } finally {
-      setLoading(false);
+      setError(
+        error.response?.data?.message ||
+          "Registration failed"
+      );
     }
   };
 
   return (
-    <div className="login-container">
-      <form className="login-form" onSubmit={handleSubmit}>
-        <h1>School Management</h1>
+    <div>
+      <h1>Create Admin Account</h1>
 
-        <h2>Register</h2>
+      {message && (
+        <p style={{ color: "green" }}>
+          {message}
+        </p>
+      )}
 
-        {error && <div className="error">{error}</div>}
+      {error && (
+        <p style={{ color: "red" }}>
+          {error}
+        </p>
+      )}
 
-        {success && <div className="success">{success}</div>}
-
+      <form onSubmit={handleSubmit}>
         <input
-          type="text"
           name="name"
-          placeholder="Full Name"
+          placeholder="Admin name"
           value={formData.name}
           onChange={handleChange}
           required
         />
 
+        <br />
+        <br />
+
         <input
           type="email"
           name="email"
-          placeholder="Email"
+          placeholder="Admin email"
           value={formData.email}
           onChange={handleChange}
           required
         />
+
+        <br />
+        <br />
 
         <input
           type="password"
@@ -81,25 +93,15 @@ const Register = () => {
           placeholder="Password"
           value={formData.password}
           onChange={handleChange}
-          minLength={6}
           required
         />
 
-        <select name="role" value={formData.role} onChange={handleChange}>
-          <option value="student">Student</option>
+        <br />
+        <br />
 
-          <option value="parent">Parent</option>
-
-          <option value="teacher">Teacher</option>
-        </select>
-
-        <button type="submit" disabled={loading}>
-          {loading ? "Registering..." : "Register"}
+        <button type="submit">
+          Register Admin
         </button>
-
-        <p>
-          Already have an account? <Link to="/login">Login</Link>
-        </p>
       </form>
     </div>
   );

@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+
     email: {
       type: String,
       required: true,
@@ -14,14 +15,16 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+
     password: {
       type: String,
       required: true,
-      minLength: 6,
+      minlength: 6,
     },
+
     role: {
       type: String,
-      enum: ["admin", "teacher", "student", "parent"],
+      enum: ["admin", "school", "teacher", "student", "parent"],
       default: "student",
     },
   },

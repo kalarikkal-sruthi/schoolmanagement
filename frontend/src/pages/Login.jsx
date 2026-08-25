@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-import { useAuth } from "../context/useAuth";
+import useAuth from "../context/useAuth";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -18,65 +17,90 @@ const Login = () => {
 
     setError("");
 
-    const result = await login(
-      email,
-      password
-    );
+    const result = await login(email, password);
 
-    if (result.success) {
-      navigate("/dashboard");
-    } else {
+    if (!result.success) {
       setError(result.message);
+      return;
+    }
+
+    // Redirect according to role
+
+    switch (result.user.role) {
+      case "admin":
+        navigate("/admin");
+        break;
+
+      case "school":
+        navigate("/school");
+        break;
+
+      case "teacher":
+        navigate("/teacher");
+        break;
+
+      case "student":
+        navigate("/student");
+        break;
+
+      case "parent":
+        navigate("/parent");
+        break;
+
+      default:
+        setError("Invalid user role");
     }
   };
 
   return (
-    <div className="login-container">
+    <div>
+      <h1>School Management System</h1>
 
-      <form
-        className="login-form"
-        onSubmit={handleSubmit}
-      >
+      <h2>Login</h2>
 
-        <h1>School Management</h1>
+      {error && (
+        <p style={{ color: "red" }}>
+          {error}
+        </p>
+      )}
 
-        <h2>Login</h2>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>Email</label>
 
-        {error && (
-          <div className="error">
-            {error}
-          </div>
-        )}
+          <input
+            type="email"
+            value={email}
+            onChange={(e) =>
+              setEmail(e.target.value)
+            }
+            placeholder="Enter email"
+            required
+          />
+        </div>
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) =>
-            setEmail(e.target.value)
-          }
-          required
-        />
+        <br />
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) =>
-            setPassword(e.target.value)
-          }
-          required
-        />
+        <div>
+          <label>Password</label>
 
-        <button
-          type="submit"
-          disabled={loading}
-        >
+          <input
+            type="password"
+            value={password}
+            onChange={(e) =>
+              setPassword(e.target.value)
+            }
+            placeholder="Enter password"
+            required
+          />
+        </div>
+
+        <br />
+
+        <button type="submit" disabled={loading}>
           {loading ? "Logging in..." : "Login"}
         </button>
-
       </form>
-
     </div>
   );
 };

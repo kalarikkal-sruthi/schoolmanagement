@@ -6,9 +6,7 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem("user");
 
-    return savedUser
-      ? JSON.parse(savedUser)
-      : null;
+    return savedUser ? JSON.parse(savedUser) : null;
   });
 
   const [loading, setLoading] = useState(false);
@@ -25,15 +23,13 @@ const AuthProvider = ({ children }) => {
       const { token, user } = response.data;
 
       localStorage.setItem("token", token);
-      localStorage.setItem(
-        "user",
-        JSON.stringify(user)
-      );
+      localStorage.setItem("user", JSON.stringify(user));
 
       setUser(user);
 
       return {
         success: true,
+        user,
       };
     } catch (error) {
       return {
@@ -41,41 +37,6 @@ const AuthProvider = ({ children }) => {
         message:
           error.response?.data?.message ||
           "Login failed",
-      };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const register = async (
-    name,
-    email,
-    password,
-    role
-  ) => {
-    try {
-      setLoading(true);
-
-      const response = await api.post(
-        "/auth/register",
-        {
-          name,
-          email,
-          password,
-          role,
-        }
-      );
-
-      return {
-        success: true,
-        message: response.data.message,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message:
-          error.response?.data?.message ||
-          "Registration failed",
       };
     } finally {
       setLoading(false);
@@ -93,10 +54,9 @@ const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
-        login,
-        register,
-        logout,
         loading,
+        login,
+        logout,
       }}
     >
       {children}

@@ -1,52 +1,74 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-//register
+
+// ==========================================
+// ADMIN REGISTRATION
+// ==========================================
 
 const register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({
-        message: "Name, email and password are required"
+        message: "Name, email and password are required",
       });
     }
 
+    // Check if an admin already exists
+    const existingAdmin = await User.findOne({ role: "admin" });
+
+    if (existingAdmin) {
+      return res.status(403).json({
+        message: "Admin already exists. Please login.",
+      });
+    }
+
+    // Check email
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
       return res.status(400).json({
-        message: "User already exists"
+        message: "Email already exists",
       });
     }
 
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Create ADMIN only
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
-      role: role || "student"
+      role: "admin",
     });
 
-    res.status(201).json({
-      message: "User registered successfully",
+    return res.status(201).json({
+      message: "Admin registered successfully",
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
-      }
+        role: user.role,
+      },
     });
   } catch (error) {
-    console.error(error);
+    console.error("REGISTER ERROR:", error);
 
-    res.status(500).json({
-      message: "Server error"
+    return res.status(500).json({
+      message: "Server error",
+      error: error.message,
     });
   }
 };
+
+
+// ==========================================
+// LOGIN
+// ==========================================
+
 const login = async (req, res) => {
   try {
     console.log("LOGIN API CALLED");
@@ -70,13 +92,25 @@ const login = async (req, res) => {
       });
     }
 
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    const passwordMatch = await bcrypt.compare(
+      password,
+      user.password
+    );
 
     console.log("PASSWORD MATCH:", passwordMatch);
 
     if (!passwordMatch) {
       return res.status(401).json({
         message: "Invalid email or password",
+      });
+    }
+
+    // Check JWT secret
+    if (!process.env.JWT_SECRET) {
+      console.error("JWT_SECRET is missing");
+
+      return res.status(500).json({
+        message: "JWT secret is not configured",
       });
     }
 
@@ -93,7 +127,9 @@ const login = async (req, res) => {
 
     return res.status(200).json({
       message: "Login successful",
+
       token,
+
       user: {
         id: user._id,
         name: user.name,
@@ -101,6 +137,7 @@ const login = async (req, res) => {
         role: user.role,
       },
     });
+
   } catch (error) {
     console.error("LOGIN ERROR:", error);
 
@@ -111,4 +148,8 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+
+module.exports = {
+  register,
+  login,
+};

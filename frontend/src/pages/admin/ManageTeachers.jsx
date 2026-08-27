@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import api from "../../services/api";
 
 const ManageTeachers = () => {
@@ -22,9 +22,9 @@ const ManageTeachers = () => {
     }
   };
 
-//   useEffect(() => {
-//     getTeachers();
-//   }, []);
+  useEffect(() => {
+    getTeachers();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
